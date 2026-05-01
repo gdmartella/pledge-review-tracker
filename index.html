@@ -102,12 +102,6 @@
   .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--blue-accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Config banner — shown until URL is pasted */
-  .config-banner { background: #FEF3C7; border-bottom: 1px solid #FCD34D; padding: 10px 24px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #78350F; }
-  .config-banner.hidden { display: none; }
-  .config-input { flex: 1; border: 1px solid #FCD34D; border-radius: 5px; padding: 5px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: #1C2B3A; background: #fff; outline: none; }
-  .config-btn { background: #D97706; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
-  .config-btn:hover { background: #B45309; }
 </style>
 </head>
 <body>
@@ -131,11 +125,6 @@
   </div>
 </div>
 
-<div class="config-banner" id="config-banner">
-  ⚠️ One-time setup: paste your Apps Script URL and click Connect.
-  <input class="config-input" id="config-url" placeholder="https://script.google.com/macros/s/YOUR_ID/exec">
-  <button class="config-btn" onclick="saveConfig()">Connect</button>
-</div>
 
 <div class="stats-bar" id="stats-bar"></div>
 
@@ -169,20 +158,10 @@
 
   let items = [];
   let dragId = null;
-  let SCRIPT_URL = localStorage.getItem('lmc-pledge-url') || '';
+  let SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwD91WMfXT68_fMqm6vFB7j0xBzPCx59fn0t7ax4mwGV--v55gV6CkeqiZecgdfB_B/exec';
 
-  // ── Config ──
-  function saveConfig() {
-    const url = document.getElementById('config-url').value.trim();
-    if (!url.startsWith('https://script.google.com')) { alert('Invalid URL — please check and try again.'); return; }
-    SCRIPT_URL = url;
-    localStorage.setItem('lmc-pledge-url', url);
-    document.getElementById('config-banner').classList.add('hidden');
-    loadFromSheet();
-  }
   function checkConfig() {
-    if (SCRIPT_URL) { document.getElementById('config-banner').classList.add('hidden'); loadFromSheet(); }
-    else { document.getElementById('loading-overlay').classList.add('hidden'); }
+    loadFromSheet();
   }
 
   // ── Sync UI ──
