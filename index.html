@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pledge Review Tracker — Loan Mountain Capital</title>
+<title>Pledge Tracker — Loan Mountain Capital</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,453 +27,291 @@
 
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; }
 
-  .header {
-    background: var(--navy);
-    padding: 18px 24px 14px;
-    display: flex; align-items: flex-end; justify-content: space-between;
-    border-bottom: 2px solid var(--blue-accent);
-  }
-  .header-left h1 {
-    font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800;
-    color: #fff; letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .add-btn {
-    background: var(--blue-accent); color: #fff; border: none;
-    padding: 8px 16px; border-radius: 6px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-    cursor: pointer; transition: background 0.15s;
-  }
+  .header { background: var(--navy); padding: 18px 24px 14px; display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid var(--blue-accent); }
+  .header-left h1 { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.04em; text-transform: uppercase; }
+  .header-left p { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+
+  .sync-indicator { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; opacity: 0; transition: opacity 0.3s; }
+  .sync-indicator.visible { opacity: 1; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #22C55E; }
+  .sync-dot.syncing { background: #F59E0B; animation: pulse 0.8s infinite; }
+  .sync-dot.error { background: #EF4444; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .add-btn { background: var(--blue-accent); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; }
   .add-btn:hover { background: #2563EB; }
 
-  .stats-bar {
-    background: #fff; border-bottom: 1px solid var(--border);
-    padding: 10px 24px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
-  }
-  .stat-item {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--text-secondary); font-family: 'DM Mono', monospace;
-  }
-  .stat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .stats-bar { background: #fff; border-bottom: 1px solid var(--border); padding: 10px 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .stat-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); font-family: 'DM Mono', monospace; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
   .stat-item strong { color: var(--text-primary); font-size: 14px; }
 
-  .board {
-    display: grid; grid-template-columns: repeat(5, 1fr);
-    gap: 12px; padding: 20px 24px;
-    min-height: calc(100vh - 130px);
-  }
+  .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 20px 24px; min-height: calc(100vh - 120px); }
+  .column { display: flex; flex-direction: column; }
 
-  .column { display: flex; flex-direction: column; min-width: 0; }
-  .col-header {
-    padding: 10px 12px 9px; border-radius: 8px 8px 0 0;
-    display: flex; align-items: flex-start; justify-content: space-between;
-    border-left: 3px solid; background: var(--card-bg);
-    border-top: 1px solid var(--border); border-right: 1px solid var(--border);
-    min-height: 54px;
-  }
+  .col-header { padding: 10px 12px 9px; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start; border-left: 3px solid; background: var(--card-bg); border-top: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 54px; }
   .col-header-left { display: flex; align-items: flex-start; gap: 6px; flex: 1; }
-  .col-title {
-    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.35;
-  }
-  .col-count {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    padding: 2px 7px; border-radius: 99px; font-weight: 500; flex-shrink: 0; margin-top: 1px;
-  }
+  .col-title { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.35; }
+  .col-count { font-family: 'DM Mono', monospace; font-size: 11px; padding: 2px 7px; border-radius: 99px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
 
-  .col-c1 .col-header { border-left-color: var(--c1-border); }
-  .col-c1 .col-title  { color: var(--c1-header); }
-  .col-c1 .col-count  { background: var(--c1-badge-bg); color: var(--c1-badge); }
-  .col-c2 .col-header { border-left-color: var(--c2-border); }
-  .col-c2 .col-title  { color: var(--c2-header); }
-  .col-c2 .col-count  { background: var(--c2-badge-bg); color: var(--c2-badge); }
-  .col-c3 .col-header { border-left-color: var(--c3-border); }
-  .col-c3 .col-title  { color: var(--c3-header); }
-  .col-c3 .col-count  { background: var(--c3-badge-bg); color: var(--c3-badge); }
-  .col-c4 .col-header { border-left-color: var(--c4-border); }
-  .col-c4 .col-title  { color: var(--c4-header); }
-  .col-c4 .col-count  { background: var(--c4-badge-bg); color: var(--c4-badge); }
-  .col-c5 .col-header { border-left-color: var(--c5-border); }
-  .col-c5 .col-title  { color: var(--c5-header); }
-  .col-c5 .col-count  { background: var(--c5-badge-bg); color: var(--c5-badge); }
+  .col-c1 .col-header { border-left-color: var(--c1-border); } .col-c1 .col-title { color: var(--c1-header); } .col-c1 .col-count { background: var(--c1-badge-bg); color: var(--c1-badge); }
+  .col-c2 .col-header { border-left-color: var(--c2-border); } .col-c2 .col-title { color: var(--c2-header); } .col-c2 .col-count { background: var(--c2-badge-bg); color: var(--c2-badge); }
+  .col-c3 .col-header { border-left-color: var(--c3-border); } .col-c3 .col-title { color: var(--c3-header); } .col-c3 .col-count { background: var(--c3-badge-bg); color: var(--c3-badge); }
+  .col-c4 .col-header { border-left-color: var(--c4-border); } .col-c4 .col-title { color: var(--c4-header); } .col-c4 .col-count { background: var(--c4-badge-bg); color: var(--c4-badge); }
+  .col-c5 .col-header { border-left-color: var(--c5-border); } .col-c5 .col-title { color: var(--c5-header); } .col-c5 .col-count { background: var(--c5-badge-bg); color: var(--c5-badge); }
 
-  .col-body {
-    flex: 1; padding: 8px; background: #F3F7FC;
-    border: 1px solid var(--border); border-top: none;
-    border-radius: 0 0 8px 8px; min-height: 200px; transition: background 0.15s;
-  }
+  .col-body { flex: 1; padding: 8px; background: #F3F7FC; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; min-height: 200px; transition: background 0.15s; }
   .col-body.drag-over { background: #E2ECF8; }
 
-  .card {
-    background: var(--card-bg); border: 1px solid var(--border);
-    border-radius: 6px; padding: 10px 10px 9px; margin-bottom: 7px;
-    cursor: grab; transition: box-shadow 0.15s, transform 0.1s;
-  }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px; margin-bottom: 8px; cursor: grab; transition: box-shadow 0.15s, transform 0.1s; position: relative; }
   .card:hover { box-shadow: 0 4px 12px rgba(28,43,58,0.1); transform: translateY(-1px); }
   .card.dragging { opacity: 0.45; cursor: grabbing; }
 
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 7px; }
-  .card-address {
-    font-size: 12px; font-weight: 600; color: var(--text-primary);
-    line-height: 1.4; flex: 1; padding-right: 6px;
-    font-family: 'DM Sans', sans-serif;
-  }
-  .card-actions { display: flex; gap: 3px; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
-  .card:hover .card-actions { opacity: 1; }
-  .card-btn {
-    background: none; border: none; cursor: pointer; padding: 2px;
-    color: var(--text-muted); font-size: 13px; line-height: 1;
-    border-radius: 3px; transition: color 0.1s, background 0.1s;
-  }
-  .card-btn:hover { color: var(--text-primary); background: var(--bg); }
-  .card-btn.del:hover { color: #EF4444; }
+  .card-delete { position: absolute; top: 7px; right: 7px; background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 12px; border-radius: 3px; padding: 2px 4px; opacity: 0; transition: opacity 0.15s, color 0.1s; }
+  .card:hover .card-delete { opacity: 1; }
+  .card-delete:hover { color: #EF4444; }
 
-  /* Assignee pill row */
-  .assignee-row { display: flex; gap: 5px; margin-bottom: 6px; }
-  .assignee-pill {
+  .card-field { outline: none; border-radius: 4px; transition: background 0.15s; cursor: text; }
+  .card-field:hover { background: #F0F4F8; }
+  .card-field:focus { background: #EEF2F7; box-shadow: 0 0 0 2px var(--blue-accent); }
+
+  .card-name { font-size: 12px; font-weight: 600; color: var(--text-primary); line-height: 1.4; padding: 2px 22px 2px 4px; margin-bottom: 7px; display: block; word-break: break-word; }
+
+  .card-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+
+  /* Assignee pills */
+  .assignee-select {
     font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
-    padding: 2px 9px; border-radius: 99px; letter-spacing: 0.04em;
-    cursor: pointer; border: 1.5px solid transparent; transition: all 0.12s;
-    user-select: none;
+    padding: 2px 8px; border-radius: 99px; border: none; cursor: pointer;
+    outline: none; appearance: none; -webkit-appearance: none; letter-spacing: 0.04em;
   }
-  .assignee-pill.serena-off { background: #F9F0F5; color: #C084A0; border-color: #EDD5E5; }
-  .assignee-pill.serena-on  { background: #FCE7F3; color: #831843; border-color: #F9A8D4; }
-  .assignee-pill.frank-off  { background: #EFF6FB; color: #7AABCB; border-color: #BFDBEE; }
-  .assignee-pill.frank-on   { background: #E0F2FE; color: #0C4A6E; border-color: #7DD3FC; }
-  .assignee-pill.angel-off  { background: #FEFAF0; color: #C4A050; border-color: #EDD9A3; }
-  .assignee-pill.angel-on   { background: #FEF3C7; color: #78350F; border-color: #FCD34D; }
+  .assignee-select:focus { box-shadow: 0 0 0 2px var(--blue-accent); }
+  .assignee-Serena { background: #FCE7F3; color: #831843; }
+  .assignee-Frank  { background: #E0F2FE; color: #0C4A6E; }
+  .assignee-Angel  { background: #FEF3C7; color: #78350F; }
+  .assignee-none   { background: #F1F5F9; color: var(--text-muted); }
 
-  .card-meta { display: flex; align-items: center; gap: 6px; }
-  .card-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); }
+  .card-notes { font-size: 11px; color: var(--text-secondary); line-height: 1.45; border-top: 1px solid var(--bg); padding: 5px 4px 2px; min-height: 1.4em; display: block; word-break: break-word; }
+  .card-notes:empty:before { content: attr(data-placeholder); color: var(--text-muted); opacity: 0.5; }
 
-  .card-notes {
-    font-size: 11px; color: var(--text-secondary);
-    margin-top: 6px; line-height: 1.45;
-    border-top: 1px solid var(--bg); padding-top: 6px;
-  }
+  .empty-col { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); text-align: center; padding: 20px 0; }
 
-  .empty-col {
-    font-family: 'DM Mono', monospace; font-size: 11px;
-    color: var(--text-muted); text-align: center; padding: 20px 0;
-  }
+  .loading-overlay { position: fixed; inset: 0; background: rgba(238,242,247,0.85); display: flex; align-items: center; justify-content: center; z-index: 200; font-family: 'DM Mono', monospace; font-size: 13px; color: var(--text-secondary); flex-direction: column; gap: 12px; }
+  .loading-overlay.hidden { display: none; }
+  .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--blue-accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Modal */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(28,43,58,0.45); z-index: 100;
-    align-items: center; justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff; border-radius: 10px; padding: 24px;
-    width: 440px; max-width: calc(100vw - 32px);
-    box-shadow: 0 20px 50px rgba(28,43,58,0.2);
-  }
-  .modal h2 {
-    font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 800;
-    text-transform: uppercase; letter-spacing: 0.06em; color: var(--navy); margin-bottom: 18px;
-  }
-  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-  .field label {
-    font-family: 'DM Mono', monospace; font-size: 10px;
-    color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;
-  }
-  .field input, .field select, .field textarea {
-    border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
-    font-family: 'DM Sans', sans-serif; font-size: 13px;
-    color: var(--text-primary); background: #fff; outline: none; transition: border-color 0.15s;
-  }
-  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--blue-accent); }
-  .field textarea { resize: vertical; min-height: 72px; }
-
-  /* Assignee toggle in modal */
-  .assignee-toggle-row { display: flex; gap: 8px; }
-  .assignee-toggle {
-    flex: 1; padding: 8px 0; border-radius: 6px; border: 1.5px solid var(--border);
-    font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500;
-    cursor: pointer; text-align: center; transition: all 0.12s; background: #fff;
-    letter-spacing: 0.04em;
-  }
-  .assignee-toggle.serena-on { background: #FCE7F3; color: #831843; border-color: #F9A8D4; }
-  .assignee-toggle.frank-on  { background: #E0F2FE; color: #0C4A6E; border-color: #7DD3FC; }
-  .assignee-toggle.angel-on  { background: #FEF3C7; color: #78350F; border-color: #FCD34D; }
-
-  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
-  .btn-cancel {
-    background: none; border: 1px solid var(--border); color: var(--text-secondary);
-    padding: 8px 16px; border-radius: 6px; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; cursor: pointer; transition: border-color 0.15s;
-  }
-  .btn-cancel:hover { border-color: var(--text-secondary); }
-  .btn-save {
-    background: var(--blue-accent); color: #fff; border: none;
-    padding: 8px 20px; border-radius: 6px; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s;
-  }
-  .btn-save:hover { background: #2563EB; }
+  /* Config banner — shown until URL is pasted */
+  .config-banner { background: #FEF3C7; border-bottom: 1px solid #FCD34D; padding: 10px 24px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #78350F; }
+  .config-banner.hidden { display: none; }
+  .config-input { flex: 1; border: 1px solid #FCD34D; border-radius: 5px; padding: 5px 10px; font-family: 'DM Mono', monospace; font-size: 12px; color: #1C2B3A; background: #fff; outline: none; }
+  .config-btn { background: #D97706; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+  .config-btn:hover { background: #B45309; }
 </style>
 </head>
 <body>
 
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <span>Loading...</span>
+</div>
+
 <div class="header">
   <div class="header-left">
-    <h1>Pledge Review Tracker</h1>
+    <h1>Pledge Tracker</h1>
+    <p>Loan Mountain Capital</p>
   </div>
-  <button class="add-btn" onclick="openModal()">+ Add Property</button>
+  <div class="header-right">
+    <div class="sync-indicator" id="sync-indicator">
+      <span class="sync-dot" id="sync-dot"></span>
+      <span id="sync-label">Saved</span>
+    </div>
+    <button class="add-btn" onclick="addCard()">+ Add Property</button>
+  </div>
+</div>
+
+<div class="config-banner" id="config-banner">
+  ⚠️ One-time setup: paste your Apps Script URL and click Connect.
+  <input class="config-input" id="config-url" placeholder="https://script.google.com/macros/s/YOUR_ID/exec">
+  <button class="config-btn" onclick="saveConfig()">Connect</button>
 </div>
 
 <div class="stats-bar" id="stats-bar"></div>
 
 <div class="board">
   <div class="column col-c1">
-    <div class="col-header"><div class="col-header-left"><span class="col-title">Sent to CRB</span><span class="col-count" id="count-Sent to CRB">0</span></div></div>
-    <div class="col-body" id="body-Sent to CRB" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Sent to CRB')"></div>
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Awaiting CRB Feedback</span><span class="col-count" id="count-Awaiting CRB Feedback">0</span></div></div>
+    <div class="col-body" id="body-Awaiting CRB Feedback" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Awaiting CRB Feedback')"></div>
   </div>
   <div class="column col-c2">
-    <div class="col-header"><div class="col-header-left"><span class="col-title">Fundings to Address CRB Comments</span><span class="col-count" id="count-Fundings to Address CRB Comments">0</span></div></div>
-    <div class="col-body" id="body-Fundings to Address CRB Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fundings to Address CRB Comments')"></div>
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Fundings Addressing CRB Comments</span><span class="col-count" id="count-Fundings Addressing CRB Comments">0</span></div></div>
+    <div class="col-body" id="body-Fundings Addressing CRB Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fundings Addressing CRB Comments')"></div>
   </div>
   <div class="column col-c3">
-    <div class="col-header"><div class="col-header-left"><span class="col-title">Approved by CRB; Awaiting Lynn's Comments</span><span class="col-count" id="count-Approved by CRB; Awaiting Lynn's Comments">0</span></div></div>
-    <div class="col-body" id="body-Approved by CRB; Awaiting Lynn's Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,`Approved by CRB; Awaiting Lynn's Comments`)"></div>
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Awaiting Lynn Feedback</span><span class="col-count" id="count-Awaiting Lynn Feedback">0</span></div></div>
+    <div class="col-body" id="body-Awaiting Lynn Feedback" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Awaiting Lynn Feedback')"></div>
   </div>
   <div class="column col-c4">
-    <div class="col-header"><div class="col-header-left"><span class="col-title">Fundings to Address Lynn's Comments</span><span class="col-count" id="count-Fundings to Address Lynn's Comments">0</span></div></div>
-    <div class="col-body" id="body-Fundings to Address Lynn's Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,`Fundings to Address Lynn's Comments`)"></div>
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Fundings Addressing Lynn Comments</span><span class="col-count" id="count-Fundings Addressing Lynn Comments">0</span></div></div>
+    <div class="col-body" id="body-Fundings Addressing Lynn Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fundings Addressing Lynn Comments')"></div>
   </div>
   <div class="column col-c5">
-    <div class="col-header"><div class="col-header-left"><span class="col-title">Cleared to be Added to the Line</span><span class="col-count" id="count-Cleared to be Added to the Line">0</span></div></div>
-    <div class="col-body" id="body-Cleared to be Added to the Line" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Cleared to be Added to the Line')"></div>
-  </div>
-</div>
-
-<!-- Modal -->
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <h2 id="modal-title">Add Property</h2>
-    <div class="field">
-      <label>Property Address</label>
-      <input type="text" id="f-name" placeholder="e.g. 1234 Maple St, Austin, TX 78701">
-    </div>
-    <div class="field">
-      <label>Assignee</label>
-      <div class="assignee-toggle-row">
-        <button class="assignee-toggle" id="toggle-Serena" onclick="toggleAssignee('Serena')">Serena</button>
-        <button class="assignee-toggle" id="toggle-Frank"  onclick="toggleAssignee('Frank')">Frank</button>
-        <button class="assignee-toggle" id="toggle-Angel"  onclick="toggleAssignee('Angel')">Angel</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>Status</label>
-      <select id="f-status">
-        <option>Sent to CRB</option>
-        <option>Fundings to Address CRB Comments</option>
-        <option>Approved by CRB; Awaiting Lynn's Comments</option>
-        <option>Fundings to Address Lynn's Comments</option>
-        <option>Cleared to be Added to the Line</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Notes</label>
-      <textarea id="f-notes" placeholder="Context, comments, blockers..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="btn-save" onclick="saveCard()">Save</button>
-    </div>
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Fully Approved</span><span class="col-count" id="count-Fully Approved">0</span></div></div>
+    <div class="col-body" id="body-Fully Approved" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fully Approved')"></div>
   </div>
 </div>
 
 <script>
-  const STATUSES = [
-    'Sent to CRB',
-    'Fundings to Address CRB Comments',
-    "Approved by CRB; Awaiting Lynn's Comments",
-    "Fundings to Address Lynn's Comments",
-    'Cleared to be Added to the Line'
-  ];
-  const DOT_COLORS = {
-    'Sent to CRB': '#A78BFA',
-    'Fundings to Address CRB Comments': '#F59E0B',
-    "Approved by CRB; Awaiting Lynn's Comments": '#3B82F6',
-    "Fundings to Address Lynn's Comments": '#F97316',
-    'Cleared to be Added to the Line': '#22C55E'
-  };
-
-  const defaultData = [
-    { id: '1', name: '482 Ridgewood Ave, Newark, NJ 07104',      assignees: ['Serena'], status: 'Sent to CRB',                                    date: '4/28/2026', notes: 'Submitted with updated rent roll. Awaiting CRB acknowledgment.' },
-    { id: '2', name: '1710 S Halsted St, Chicago, IL 60608',     assignees: ['Frank'],  status: 'Fundings to Address CRB Comments',                date: '4/22/2026', notes: 'CRB flagged vacancy rate — need updated occupancy cert from borrower.' },
-    { id: '3', name: '3305 W Jefferson Blvd, Los Angeles, CA',   assignees: ['Angel'],  status: "Approved by CRB; Awaiting Lynn's Comments",       date: '4/15/2026', notes: 'CRB approved 4/14. Lynn review pending.' },
-    { id: '4', name: '890 Peachtree St NE, Atlanta, GA 30309',   assignees: ['Serena'], status: "Fundings to Address Lynn's Comments",             date: '4/10/2026', notes: 'Lynn requested Phase I environmental update.' },
-    { id: '5', name: '204 N Michigan Ave, Chicago, IL 60601',    assignees: ['Angel'],  status: 'Cleared to be Added to the Line',                 date: '4/5/2026',  notes: 'All comments resolved. Ready for line addition.' },
-  ];
+  const STATUSES = ['Awaiting CRB Feedback','Fundings Addressing CRB Comments','Awaiting Lynn Feedback','Fundings Addressing Lynn Comments','Fully Approved'];
+  const DOT_COLORS = {'Awaiting CRB Feedback':'#A78BFA','Fundings Addressing CRB Comments':'#F59E0B','Awaiting Lynn Feedback':'#3B82F6','Fundings Addressing Lynn Comments':'#F97316','Fully Approved':'#22C55E'};
+  const ASSIGNEES = ['Serena','Frank','Angel'];
 
   let items = [];
   let dragId = null;
-  let editId = null;
-  let modalAssignees = [];
+  let SCRIPT_URL = localStorage.getItem('lmc-pledge-url') || '';
 
-  function load() {
+  // ── Config ──
+  function saveConfig() {
+    const url = document.getElementById('config-url').value.trim();
+    if (!url.startsWith('https://script.google.com')) { alert('Invalid URL — please check and try again.'); return; }
+    SCRIPT_URL = url;
+    localStorage.setItem('lmc-pledge-url', url);
+    document.getElementById('config-banner').classList.add('hidden');
+    loadFromSheet();
+  }
+  function checkConfig() {
+    if (SCRIPT_URL) { document.getElementById('config-banner').classList.add('hidden'); loadFromSheet(); }
+    else { document.getElementById('loading-overlay').classList.add('hidden'); }
+  }
+
+  // ── Sync UI ──
+  function showSync(state, label) {
+    const ind = document.getElementById('sync-indicator');
+    const dot = document.getElementById('sync-dot');
+    ind.classList.add('visible');
+    dot.className = 'sync-dot' + (state === 'syncing' ? ' syncing' : state === 'error' ? ' error' : '');
+    document.getElementById('sync-label').textContent = label;
+    if (state === 'saved') setTimeout(() => ind.classList.remove('visible'), 2500);
+  }
+
+  // ── Sheet API ──
+  async function loadFromSheet() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
     try {
-      const saved = localStorage.getItem('lmc-pledge-tracker');
-      items = saved ? JSON.parse(saved) : defaultData;
-    } catch(e) { items = defaultData; }
+      const res = await fetch(SCRIPT_URL + '?action=get', { redirect: 'follow' });
+      items = await res.json();
+    } catch(e) { showSync('error', 'Load failed'); items = []; }
+    document.getElementById('loading-overlay').classList.add('hidden');
     render();
   }
 
-  function save() {
-    try { localStorage.setItem('lmc-pledge-tracker', JSON.stringify(items)); } catch(e) {}
+  async function pushToSheet(action, payload) {
+    showSync('syncing', 'Saving...');
+    try {
+      let url = SCRIPT_URL + '?action=' + action;
+      if (payload.item) url += '&item=' + encodeURIComponent(JSON.stringify(payload.item));
+      if (payload.id)   url += '&id='   + encodeURIComponent(String(payload.id));
+      await fetch(url, { redirect: 'follow' });
+      showSync('saved', 'Saved');
+    } catch(e) { showSync('error', 'Save failed'); }
   }
 
-  function esc(str) {
-    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function pillClass(name, active) {
-    const map = { Serena: 'serena', Frank: 'frank', Angel: 'angel' };
-    const base = map[name] || 'serena';
-    return `assignee-pill ${base}-${active ? 'on' : 'off'}`;
-  }
+  // ── Render ──
+  function esc(str) { return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function cardHTML(item) {
-    const assignees = item.assignees || [];
-    // Only show assigned people as active pills; unassigned shown as faded toggles
-    const pills = ['Serena','Frank','Angel'].map(name => {
-      const on = assignees.includes(name);
-      if (!on) return `<span class="${pillClass(name, false)}" onclick="toggleCardAssignee('${item.id}','${name}')">${name}</span>`;
-      return `<span class="${pillClass(name, true)}" onclick="toggleCardAssignee('${item.id}','${name}')">${name}</span>`;
-    }).filter((_, i) => assignees.includes(['Serena','Frank','Angel'][i])).join('') ||
-      `<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);">Unassigned</span>`;
-
+    const id = String(item.id);
+    const assignee = item.assignee || '';
     return `
-      <div class="card" draggable="true" id="card-${item.id}"
-        ondragstart="onDragStart(event,'${item.id}')"
-        ondragend="onDragEnd()">
-        <div class="card-top">
-          <div class="card-address">${esc(item.name)}</div>
-          <div class="card-actions">
-            <button class="card-btn" onclick="openModal('${item.id}')" title="Edit">✎</button>
-            <button class="card-btn del" onclick="deleteCard('${item.id}')" title="Delete">✕</button>
-          </div>
+      <div class="card" draggable="true" id="card-${id}" ondragstart="onDragStart(event,'${id}')" ondragend="onDragEnd()">
+        <button class="card-delete" onclick="deleteCard('${id}')" title="Delete">✕</button>
+        <div class="card-name card-field" contenteditable="true"
+          onblur="saveField('${id}','name',this)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+          ${esc(item.name)}
         </div>
-        <div class="assignee-row">${pills}</div>
-        ${item.notes ? `<div class="card-notes">${esc(item.notes)}</div>` : ''}
+        <div class="card-meta">
+          <select class="assignee-select assignee-${assignee||'none'}"
+            onchange="saveAssignee('${id}',this)" onclick="event.stopPropagation()">
+            <option value="" ${!assignee?'selected':''}>Unassigned</option>
+            ${ASSIGNEES.map(a => `<option value="${a}" ${assignee===a?'selected':''}>${a}</option>`).join('')}
+          </select>
+        </div>
+        <div class="card-notes card-field" contenteditable="true" data-placeholder="Add notes..."
+          onblur="saveField('${id}','notes',this)">
+          ${esc(item.notes)}
+        </div>
       </div>`;
-  }
-
-  function toggleCardAssignee(id, name) {
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-    // Single-select: clicking assigned person clears; clicking another sets them
-    if (item.assignees && item.assignees.includes(name)) {
-      item.assignees = [];
-    } else {
-      item.assignees = [name];
-    }
-    save(); render();
   }
 
   function render() {
     STATUSES.forEach(s => {
       const body = document.getElementById('body-' + s);
-      const countEl = document.getElementById('count-' + s);
       const filtered = items.filter(i => i.status === s);
-      if (countEl) countEl.textContent = filtered.length;
-      if (body) body.innerHTML = filtered.length === 0
+      document.getElementById('count-' + s).textContent = filtered.length;
+      body.innerHTML = filtered.length === 0
         ? `<div class="empty-col">No items</div>`
         : filtered.map(cardHTML).join('');
     });
-    renderStats();
+    document.getElementById('stats-bar').innerHTML = STATUSES.map(s =>
+      `<div class="stat-item"><span class="stat-dot" style="background:${DOT_COLORS[s]}"></span><strong>${items.filter(i=>i.status===s).length}</strong> <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(s)}">${esc(s)}</span></div>`
+    ).join('<span style="color:var(--border);font-size:16px">·</span>');
   }
 
-  function renderStats() {
-    const bar = document.getElementById('stats-bar');
-    bar.innerHTML = STATUSES.map((s, i) =>
-      `<div class="stat-item">
-        <span class="stat-dot" style="background:${DOT_COLORS[s]}"></span>
-        <strong>${items.filter(x => x.status === s).length}</strong>
-        <span style="max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${esc(s)}">${esc(s)}</span>
-      </div>${i < STATUSES.length-1 ? '<span style="color:var(--border);font-size:18px">·</span>' : ''}`
-    ).join('');
+  // ── Field save handlers ──
+  function saveField(id, field, el) {
+    const item = items.find(i => String(i.id) === String(id));
+    if (!item) return;
+    const val = el.innerText.trim();
+    if (item[field] === val) return;
+    item[field] = val;
+    pushToSheet('update', { item });
   }
 
-  // Modal assignee toggles — single select
-  function toggleAssignee(name) {
-    if (modalAssignees.includes(name)) {
-      modalAssignees = [];
-    } else {
-      modalAssignees = [name];
-    }
-    updateToggleUI();
-  }
-  function updateToggleUI() {
-    ['Serena','Frank','Angel'].forEach(name => {
-      const btn = document.getElementById('toggle-' + name);
-      const map = { Serena: 'serena-on', Frank: 'frank-on', Angel: 'angel-on' };
-      btn.className = 'assignee-toggle' + (modalAssignees.includes(name) ? ' ' + map[name] : '');
-    });
+  function saveAssignee(id, select) {
+    const item = items.find(i => String(i.id) === String(id));
+    if (!item) return;
+    item.assignee = select.value;
+    select.className = 'assignee-select assignee-' + (select.value || 'none');
+    pushToSheet('update', { item });
   }
 
-  function openModal(id = null) {
-    editId = id;
-    const item = id ? items.find(i => i.id === id) : null;
-    document.getElementById('modal-title').textContent = id ? 'Edit Property' : 'Add Property';
-    document.getElementById('f-name').value = item?.name || '';
-    document.getElementById('f-status').value = item?.status || 'Sent to CRB';
-    document.getElementById('f-notes').value = item?.notes || '';
-    modalAssignees = item?.assignees ? [...item.assignees] : [];
-    updateToggleUI();
-    document.getElementById('modal-overlay').classList.add('open');
-    setTimeout(() => document.getElementById('f-name').focus(), 200);
+  // ── Add card ──
+  function addCard() {
+    const today = new Date().toLocaleDateString('en-US',{month:'numeric',day:'numeric',year:'numeric'});
+    const item = { id: Date.now().toString(), name: '', assignee: '', status: 'Awaiting CRB Feedback', notes: '', date: today };
+    items.unshift(item);
+    render();
+    pushToSheet('add', { item });
+    setTimeout(() => { const el = document.querySelector(`#card-${item.id} .card-name`); if (el) el.focus(); }, 50);
   }
-  function closeModal() {
-    document.getElementById('modal-overlay').classList.remove('open');
-    editId = null;
-  }
-  function saveCard() {
-    const name = document.getElementById('f-name').value.trim();
-    if (!name) { document.getElementById('f-name').focus(); return; }
-    const today = new Date().toLocaleDateString('en-US', {month:'numeric',day:'numeric',year:'numeric'});
-    if (editId) {
-      const item = items.find(i => i.id === editId);
-      Object.assign(item, {
-        name,
-        assignees: [...modalAssignees],
-        status: document.getElementById('f-status').value,
-        notes: document.getElementById('f-notes').value.trim(),
-      });
-    } else {
-      items.push({
-        id: Date.now().toString(), name, date: today,
-        assignees: [...modalAssignees],
-        status: document.getElementById('f-status').value,
-        notes: document.getElementById('f-notes').value.trim(),
-      });
-    }
-    save(); render(); closeModal();
-  }
+
+  // ── Delete ──
   function deleteCard(id) {
-    items = items.filter(i => i.id !== id);
-    save(); render();
+    items = items.filter(i => String(i.id) !== String(id));
+    render();
+    pushToSheet('delete', { id });
   }
 
-  function onDragStart(e, id) { dragId = id; setTimeout(() => document.getElementById('card-'+id)?.classList.add('dragging'), 0); }
+  // ── Drag & Drop ──
+  function onDragStart(e, id) {
+    if (document.activeElement && document.activeElement.isContentEditable) { e.preventDefault(); return; }
+    dragId = id;
+    setTimeout(() => document.getElementById('card-' + id)?.classList.add('dragging'), 0);
+  }
   function onDragEnd() { document.querySelectorAll('.card').forEach(c => c.classList.remove('dragging')); }
   function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }
   function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
   function onDrop(e, status) {
     e.preventDefault(); e.currentTarget.classList.remove('drag-over');
     if (!dragId) return;
-    const item = items.find(i => i.id === dragId);
-    if (item) { item.status = status; save(); render(); }
+    const item = items.find(i => String(i.id) === String(dragId));
+    if (item && item.status !== status) { item.status = status; render(); pushToSheet('update', { item }); }
     dragId = null;
   }
 
-  document.getElementById('modal-overlay').addEventListener('click', e => {
-    if (e.target === document.getElementById('modal-overlay')) closeModal();
-  });
-
-  load();
+  checkConfig();
 </script>
 </body>
 </html>
