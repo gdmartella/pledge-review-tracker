@@ -22,7 +22,8 @@
     --c2-border: #F59E0B; --c2-badge: #78350F; --c2-badge-bg: #FEF3C7; --c2-header: #D97706;
     --c3-border: #3B82F6; --c3-badge: #0C447C; --c3-badge-bg: #DBEAFE; --c3-header: #1D4ED8;
     --c4-border: #F97316; --c4-badge: #7C2D12; --c4-badge-bg: #FFEDD5; --c4-header: #C2410C;
-    --c5-border: #22C55E; --c5-badge: #14532D; --c5-badge-bg: #DCFCE7; --c5-header: #15803D;
+    --c5-border: #14B8A6; --c5-badge: #134E4A; --c5-badge-bg: #CCFBF1; --c5-header: #0F766E;
+    --c6-border: #22C55E; --c6-badge: #14532D; --c6-badge-bg: #DCFCE7; --c6-header: #15803D;
   }
 
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text-primary); min-height: 100vh; }
@@ -47,7 +48,7 @@
   .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
   .stat-item strong { color: var(--text-primary); font-size: 14px; }
 
-  .board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; padding: 20px 24px; min-height: calc(100vh - 120px); }
+  .board { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; padding: 20px 24px; min-height: calc(100vh - 120px); }
   .column { display: flex; flex-direction: column; }
 
   .col-header { padding: 10px 12px 9px; border-radius: 8px 8px 0 0; display: flex; align-items: flex-start; border-left: 3px solid; background: var(--card-bg); border-top: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 54px; }
@@ -60,6 +61,7 @@
   .col-c3 .col-header { border-left-color: var(--c3-border); } .col-c3 .col-title { color: var(--c3-header); } .col-c3 .col-count { background: var(--c3-badge-bg); color: var(--c3-badge); }
   .col-c4 .col-header { border-left-color: var(--c4-border); } .col-c4 .col-title { color: var(--c4-header); } .col-c4 .col-count { background: var(--c4-badge-bg); color: var(--c4-badge); }
   .col-c5 .col-header { border-left-color: var(--c5-border); } .col-c5 .col-title { color: var(--c5-header); } .col-c5 .col-count { background: var(--c5-badge-bg); color: var(--c5-badge); }
+  .col-c6 .col-header { border-left-color: var(--c6-border); } .col-c6 .col-title { color: var(--c6-header); } .col-c6 .col-count { background: var(--c6-badge-bg); color: var(--c6-badge); }
 
   .col-body { flex: 1; padding: 8px; background: #F3F7FC; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; min-height: 200px; transition: background 0.15s; }
   .col-body.drag-over { background: #E2ECF8; }
@@ -80,7 +82,6 @@
 
   .card-meta { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
 
-  /* Assignee pills */
   .assignee-select {
     font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 500;
     padding: 2px 8px; border-radius: 99px; border: none; cursor: pointer;
@@ -125,7 +126,6 @@
   </div>
 </div>
 
-
 <div class="stats-bar" id="stats-bar"></div>
 
 <div class="board">
@@ -146,14 +146,18 @@
     <div class="col-body" id="body-Fundings Addressing Lynn Comments" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fundings Addressing Lynn Comments')"></div>
   </div>
   <div class="column col-c5">
+    <div class="col-header"><div class="col-header-left"><span class="col-title">Pending Recorded DOT</span><span class="col-count" id="count-Pending Recorded DOT">0</span></div></div>
+    <div class="col-body" id="body-Pending Recorded DOT" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Pending Recorded DOT')"></div>
+  </div>
+  <div class="column col-c6">
     <div class="col-header"><div class="col-header-left"><span class="col-title">Fully Approved</span><span class="col-count" id="count-Fully Approved">0</span></div></div>
     <div class="col-body" id="body-Fully Approved" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'Fully Approved')"></div>
   </div>
 </div>
 
 <script>
-  const STATUSES = ['Awaiting CRB Feedback','Fundings Addressing CRB Comments','Awaiting Lynn Feedback','Fundings Addressing Lynn Comments','Fully Approved'];
-  const DOT_COLORS = {'Awaiting CRB Feedback':'#A78BFA','Fundings Addressing CRB Comments':'#F59E0B','Awaiting Lynn Feedback':'#3B82F6','Fundings Addressing Lynn Comments':'#F97316','Fully Approved':'#22C55E'};
+  const STATUSES = ['Awaiting CRB Feedback','Fundings Addressing CRB Comments','Awaiting Lynn Feedback','Fundings Addressing Lynn Comments','Pending Recorded DOT','Fully Approved'];
+  const DOT_COLORS = {'Awaiting CRB Feedback':'#A78BFA','Fundings Addressing CRB Comments':'#F59E0B','Awaiting Lynn Feedback':'#3B82F6','Fundings Addressing Lynn Comments':'#F97316','Pending Recorded DOT':'#14B8A6','Fully Approved':'#22C55E'};
   const ASSIGNEES = ['Serena','Frank','Angel'];
 
   let items = [];
